@@ -27,10 +27,18 @@ jobs:
           mkdir -p ./docs
           cp -r ./dist/* ./docs
 
+      - name: Get User Email
+        id: get-email
+        run: |
+          EMAIL=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/users/${{ github.actor }}" | jq -r ".email")
+          echo "::set-output name=email::$EMAIL"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Commit and Push
         run: |
           git config user.name "${{ github.actor }}"
-          git config user.email "actions@github.com"
+          git config user.email "${{ steps.get-email.outputs.email }}"
           git add docs/
           git commit -m "Deploy vite example site to GitHub Pages" -a
           git push
